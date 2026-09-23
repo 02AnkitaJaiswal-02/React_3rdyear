@@ -1,0 +1,229 @@
+# Conditional Rendering
+
+
+
+**Topic:** conditional rendering strategies
+**You should already know:** components, JSX, props
+
+---
+
+## 1. Real screens change with the data
+
+| Case | What you want |
+|---|---|
+| A topper badge | Show a medal only when `cgpa` is above 9 |
+| Pass or fail | Show one word or the other, never both |
+| An empty list | Show "No students found" instead of a blank space |
+
+**The problem:** you cannot write an `if` statement inside JSX. So how do you make a decision there?
+
+---
+
+## 2. Braces take a value, not a statement
+
+```jsx
+// ✗ does not work
+<div>
+  {if (cgpa > 9) { ... }}
+</div>
+
+// ✓ an expression works
+<div>
+  {cgpa > 9 ? "Topper" : ""}
+</div>
+```
+
+The test from the JSX lecture still applies:
+
+> **If you could put it on the right of an `=` sign, it works inside braces.**
+
+An `if` statement cannot go there. A ternary can, because it produces a value.
+
+---
+
+## 3. Way 1 — the ternary
+
+```
+{ condition ? showThis : showThat }
+```
+
+```jsx
+<p>Result: {cgpa >= 5 ? "Pass" : "Fail"}</p>
+```
+
+Read it aloud as: *if this, then that, otherwise the other.*
+
+**Exactly one of the two always appears.**
+
+**Use it when** there are two possibilities and one of them must always show.
+
+---
+
+## 4. A ternary can return JSX too
+
+```jsx
+function StudentCard({ name, cgpa }) {
+  return (
+    <div>
+      <h3>{name}</h3>
+      {cgpa >= 9
+        ? <span>🏅 Topper</span>
+        : <span>Keep going</span>}
+    </div>
+  );
+}
+```
+
+The two results are **JSX**, not just text. Anything you could return normally can go on either side.
+
+---
+
+## 5. Way 2 — the `&&` pattern
+
+```
+{ condition && showThis }
+```
+
+```jsx
+{cgpa >= 9 && <span>🏅 Topper</span>}
+```
+
+- condition is **true** → the badge appears
+- condition is **false** → nothing is added at all
+
+**Use it when** there is nothing sensible to show in the other case. This is the more common of the two in real code.
+
+---
+
+## 6. Which one do I use?
+
+| | Ternary `? :` | And `&&` |
+|---|---|---|
+| Number of outcomes | two | one or nothing |
+| Reads as | this **or** that | **only if** |
+| Good for | Pass / Fail | a badge, a warning |
+
+> **Simple test:** is there something to show in the other case? Yes → ternary. No → `&&`.
+
+---
+
+## 7. ⚠ The `&&` number trap
+
+```jsx
+// ✗ prints 0 on the screen
+{marks.length && <List />}
+
+// ✓ compare properly
+{marks.length > 0 && <List />}
+```
+
+**Why:** `0` is falsy, so `&&` stops and hands back `0` — and React happily prints the number `0` on your page. You get a stray zero floating in your layout with no error message.
+
+**Rule:** always compare, so the condition is a real `true` or `false`.
+
+The same trap applies to empty strings and to `NaN`.
+
+---
+
+## 8. Way 3 — empty states
+
+```jsx
+function StudentList({ students }) {
+  if (students.length === 0) {
+    return <p>No students found.</p>;
+  }
+
+  return <div>...the list...</div>;
+}
+```
+
+**An `if` statement IS allowed here.** This `if` is in the **function body**, above the `return` — not inside braces in JSX. That is perfectly fine.
+
+This is called an **early return**, and it is used constantly in real code. It keeps the main return clean.
+
+**Never leave the screen blank.** A user who sees nothing cannot tell whether the app is loading, broken, or genuinely empty.
+
+---
+
+## 9. Type this in
+
+```jsx
+function StudentCard({ name, cgpa, isPlaced }) {
+  return (
+    <div>
+      <h3>{name}</h3>
+      <p>{cgpa >= 5 ? "Pass" : "Fail"}</p>
+      {cgpa >= 9 && <span>🏅 Topper</span>}
+      {isPlaced && <span>✅ Placed</span>}
+    </div>
+  );
+}
+```
+
+Change the `cgpa` values and watch parts appear and disappear. Send `isPlaced={false}` for one card and see the tick vanish.
+
+---
+
+## Lab task
+
+**1. Use a ternary** — show Pass or Fail on each `StudentCard`.
+
+**2. Use `&&`** — show a Topper badge only when `cgpa` is above 9.
+
+**3. Add an empty state** — make `StudentList` show a message when the array is empty.
+
+**Submit:** your `src` folder, plus one line saying why you chose `&&` rather than a ternary for the badge.
+
+---
+
+## Quick reference
+
+```jsx
+// two outcomes
+{cond ? <A /> : <B />}
+
+// one outcome or nothing
+{cond && <A />}
+
+// safe with numbers
+{list.length > 0 && <A />}
+
+// empty state — early return
+if (list.length === 0) {
+  return <p>Nothing here yet.</p>;
+}
+```
+
+---
+
+## Self-check
+
+1. Why can you not use an `if` statement inside JSX braces?
+2. Write a ternary that shows "Present" or "Absent".
+3. When would you choose `&&` over a ternary?
+4. What appears on screen for `{items.length && <List />}` when the array is empty, and why?
+5. Where in a component is an `if` statement allowed?
+6. What is an empty state, and why does it matter?
+
+---
+
+## Common errors
+
+| What you see | Likely cause |
+|---|---|
+| A stray `0` on the page | used `&&` with a length instead of comparing |
+| Both options showing | you wrote two separate `&&` lines instead of a ternary |
+| Nothing appears | condition is always false — log it to check |
+| Syntax error | an `if` written inside JSX braces |
+
+---
+
+## Next lecture
+
+**Rendering Lists with `.map()`** — you are still writing each card by hand. Next: turning an array of forty students into forty cards with one line.
+
+**Before you come:** look at your `App.jsx`. You typed each `StudentCard` manually. Imagine doing that for a class of sixty.
+
+---
+
+*INT252 · Unit II · Ankita Jaiswal · LPU*
