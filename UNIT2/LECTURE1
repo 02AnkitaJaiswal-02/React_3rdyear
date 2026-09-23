@@ -1,0 +1,276 @@
+# Props — Passing Data In
+
+**INT252 · Unit II · Lecture 1 · Study Guide**
+Lovely Professional University · School of Computer Science and Engineering
+
+> Read this alongside the lecture slides. Each section matches one slide.
+
+**Topic:** functional components · props-driven component reusability
+**You should already know:** components, JSX, destructuring, ES modules
+
+---
+
+## 1. The problem
+
+At the end of Unit I you had this:
+
+```jsx
+<ProfileCard />
+<ProfileCard />
+```
+
+Both cards show the same text, because the name is hard-coded inside the component file.
+
+**A component you cannot change is not reusable.** You would need forty separate files to show forty students. That defeats the whole point of components.
+
+---
+
+## 2. Props are just function parameters
+
+```js
+// an ordinary function
+function greet(name) {
+  return "Hi " + name;
+}
+greet("Riya");
+```
+
+```jsx
+// a component
+function Card(props) {
+  return <h2>{props.name}</h2>;
+}
+<Card name="Riya" />
+```
+
+**Same idea.** You already know how to pass values into a function. Props are that, written as attributes on a tag.
+
+---
+
+## 3. Send it in, then use it
+
+```jsx
+// 1 · sending — App.jsx
+<Card name="Riya" />
+<Card name="Aarav" />
+<Card name="Meera" />
+```
+
+```jsx
+// 2 · receiving — Card.jsx
+function Card(props) {
+  return <h2>{props.name}</h2>;
+}
+```
+
+`props` is **one object** holding everything you sent. Send `name="Riya"` and React hands your function `{ name: "Riya" }`. Read it with `props.name`.
+
+Three cards, three different names, **one component file**.
+
+---
+
+## 4. Destructure the props
+
+```jsx
+// works, but repetitive
+function Card(props) {
+  return <h2>{props.name}</h2>;
+}
+
+// ✓ what everyone writes
+function Card({ name }) {
+  return <h2>{name}</h2>;
+}
+```
+
+This is the same destructuring you learned in Unit I, applied to the parameter. With several props it saves a lot of typing:
+
+```jsx
+function Card({ name, branch, cgpa }) { ... }
+```
+
+Use this form from now on — every React codebase does.
+
+---
+
+## 5. Only text uses quotes
+
+```jsx
+<Card
+  name="Riya"              // text — quotes
+  age={20}                 // number — braces
+  isTopper={true}          // boolean — braces
+  marks={[90, 85, 78]}     // array — braces
+/>
+```
+
+⚠ **Common bug:** `age="20"` sends the **text** `"20"`, not the number `20`. Then `{age + 5}` gives you `"205"` instead of `25`, because JavaScript joins two strings instead of adding two numbers.
+
+**Rule:** if it is not plain text, wrap it in braces.
+
+---
+
+## 6. Props are read-only
+
+```jsx
+// ✗ never do this
+function Card({ name }) {
+  name = "Changed";
+  return <h2>{name}</h2>;
+}
+
+// ✓ only read them
+function Card({ name }) {
+  return <h2>{name}</h2>;
+}
+```
+
+**Data flows one way — parent to child.** A component never changes the props it was given. If a value needs to change, the parent must change it.
+
+This is the same principle as immutability from Unit I. What handles changing values is **state**, which comes in Unit III.
+
+---
+
+## 7. `children` — whatever you put inside the tag
+
+```jsx
+// using it
+<Box>
+  <h2>Notice</h2>
+  <p>Exam on Friday</p>
+</Box>
+```
+
+```jsx
+// Box.jsx
+function Box({ children }) {
+  return (
+    <div className="box">
+      {children}
+    </div>
+  );
+}
+```
+
+`children` is a prop React fills in automatically with whatever sits between the opening and closing tags.
+
+**Use it for wrappers** — cards, panels, modals. Anything that puts a frame around content it does not know in advance.
+
+---
+
+## 8. Default values
+
+```jsx
+function Card({ name, branch = "CSE" }) {
+  return <h2>{name} — {branch}</h2>;
+}
+```
+
+| Usage | Result |
+|---|---|
+| `<Card name="Riya" branch="ECE" />` | shows ECE |
+| `<Card name="Riya" />` | falls back to CSE |
+
+Same default-parameter syntax you already use in ordinary functions.
+
+---
+
+## 9. Type this in
+
+```jsx
+// src/StudentCard.jsx
+function StudentCard({ name, cgpa }) {
+  return (
+    <div>
+      <h3>{name}</h3>
+      <p>CGPA: {cgpa}</p>
+    </div>
+  );
+}
+
+export default StudentCard;
+```
+
+```jsx
+// src/App.jsx
+import StudentCard from './StudentCard.jsx';
+
+function App() {
+  return (
+    <div>
+      <StudentCard name="Riya" cgpa={8.7} />
+      <StudentCard name="Aarav" cgpa={9.1} />
+    </div>
+  );
+}
+
+export default App;
+```
+
+Now add a third card **without touching `StudentCard.jsx`**. That is reusability.
+
+---
+
+## Lab task
+
+**1. Build `StudentCard`** — props for `name`, `branch`, `cgpa` and `marks` (an array).
+
+**2. Show four students** — use the component four times with different values.
+
+**3. Add a default** — give `branch` a default value and leave it out for one card.
+
+**Submit:** your `src` folder. `StudentCard.jsx` must contain **no student names at all**.
+
+---
+
+## Quick reference
+
+```jsx
+// sending
+<Card name="Riya" age={20} isTopper={true} />
+
+// receiving
+function Card({ name, age, isTopper }) { ... }
+
+// with a default
+function Card({ name, branch = "CSE" }) { ... }
+
+// wrapper
+function Box({ children }) {
+  return <div>{children}</div>;
+}
+```
+
+---
+
+## Self-check
+
+1. What is `props` — what type of thing does React hand your function?
+2. Rewrite `function Card(props)` using destructuring.
+3. Why does `age="20"` cause a bug when you calculate with it?
+4. What happens if a component changes one of its own props?
+5. Where does the value of `children` come from?
+6. Write a component that takes `title` with a default of `"Untitled"`.
+
+---
+
+## Common errors
+
+| What you see | Likely cause |
+|---|---|
+| `undefined` on screen | prop name misspelled — check spelling on both sides |
+| `"205"` instead of `25` | number sent in quotes instead of braces |
+| Nothing renders | forgot to `export default` the component |
+| Same content in every card | you used the component but sent no props |
+
+---
+
+## Next lecture
+
+**Conditional Rendering** — showing different things depending on the data: a badge only for toppers, a message when a list is empty.
+
+**Before you come:** think about how you would show a "Topper" label on a card only when `cgpa` is above 9.
+
+---
+
+*INT252 · Unit II · Ankita Jaiswal · LPU*
